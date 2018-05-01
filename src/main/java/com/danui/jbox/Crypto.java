@@ -12,6 +12,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.interfaces.PBEKey;
 import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Cryptographic operations
@@ -34,7 +35,7 @@ public class Crypto {
      *
      * Default key derivation function and parameters would be used.
      */
-    public void encryptFileWithPassword(
+    public void encryptWithPassword(
         InputStream inputStream,
         OutputStream outputStream,
         char[] password)
@@ -49,11 +50,14 @@ public class Crypto {
         int keyLength = 128;
         String kdfAlgo = "PBKDF2WithHmacSHA1";
         String cipherSuite = "AES/ECB/PKCS5Padding";
+        String secretKeyAlgo = "AES";
         PBEKeySpec spec = new PBEKeySpec(password, salt, iterCount, keyLength);
         SecretKeyFactory factory = SecretKeyFactory.getInstance(kdfAlgo);
         PBEKey key = (PBEKey)factory.generateSecret(spec);
         Cipher cipher = Cipher.getInstance(cipherSuite);
-        cipher.init(Cipher.ENCRYPT_MODE, key);
+        cipher.init(
+            Cipher.ENCRYPT_MODE,
+            new SecretKeySpec(key.getEncoded(), secretKeyAlgo));
 
         // Write header magic byte and KDF parameters.
         DataOutputStream dataOut = new DataOutputStream(outputStream);
@@ -64,11 +68,13 @@ public class Crypto {
         dataOut.writeInt(keyLength);
         dataOut.writeUTF(kdfAlgo);
         dataOut.writeUTF(cipherSuite);
+        dataOut.writeUTF(secretKeyAlgo);
 
         // Write ciphertext.
         CipherOutputStream cipherOut = new CipherOutputStream(dataOut, cipher);
         pump(inputStream, cipherOut);
         cipherOut.flush();
+        cipherOut.close();
     }
 
 
@@ -85,7 +91,7 @@ public class Crypto {
      * Key derivation function parameters would be read from the input
      * stream.
      */
-    public void decryptFileWithPassword(
+    public void decryptWithPassword(
         InputStream inputStream,
         OutputStream outputStream,
         char[] password)
@@ -106,14 +112,18 @@ public class Crypto {
         int keyLength = dataIn.readInt();
         String kdfAlgo = dataIn.readUTF();
         String cipherSuite = dataIn.readUTF();
+        String secretKeyAlgo = dataIn.readUTF();
         PBEKeySpec spec = new PBEKeySpec(password, salt, iterCount, keyLength);
         SecretKeyFactory factory = SecretKeyFactory.getInstance(kdfAlgo);
         PBEKey key = (PBEKey)factory.generateSecret(spec);
         Cipher cipher = Cipher.getInstance(cipherSuite);
-        cipher.init(Cipher.DECRYPT_MODE, key);
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            new SecretKeySpec(key.getEncoded(), secretKeyAlgo));
         CipherInputStream cipherIn = new CipherInputStream(dataIn, cipher);
         pump(cipherIn, outputStream);
         outputStream.flush();
+        outputStream.close();
     }
 
     private void pump(InputStream inputStream, OutputStream outputStream) throws IOException {
