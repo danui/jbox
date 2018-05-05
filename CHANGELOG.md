@@ -1,7 +1,7 @@
 # CHANGELOG for jbox
 
 ----------------------------------------------------------------------
-## v1.1.0 (snapshot)
+## v1.1.0 (5 May 2018)
 
 - Support stdin and stdout streaming.
 - Add integration tests in the `itest` directory.
