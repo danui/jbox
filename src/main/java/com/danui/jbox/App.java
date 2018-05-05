@@ -16,10 +16,15 @@ public class App {
             System.err.println(
                 "Commands and args are specified via system properties:\n"+
                 "\n"+
-                "jbox.op=encrypt jbox.in=? jbox.out=? jbox.password.file=?\n"+
-                "jbox.op=encrypt jbox.in=? jbox.out=? jbox.password=?\n"+
-                "jbox.op=decrypt jbox.in=? jbox.out=? jbox.password.file=?\n"+
-                "jbox.op=decrypt jbox.in=? jbox.out=? jbox.password=?\n"+
+                "  jbox.op=?            Specify 'encrypt' or 'decrypt'.\n"+
+                "  jbox.in=?            Read input from this file. Default is to read from stdin.\n"+
+                "  jbox.out=?           Write output to this file. Default is to write to stdout.\n"+
+                "  jbox.password=?      Use this password to derive a secret key.\n"+
+                "  jbox.password.file=? Read password from this file\n"+
+                "\n"+
+                "You can safely pass in password using 'read -s' in bash.\n"+
+                "\n"+
+                "    -Djbox.password=$(read -s x; echo $x)\n"+
                 "");
             System.exit(1);
         }
