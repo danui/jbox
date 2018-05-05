@@ -33,20 +33,16 @@ public class App {
     private static void encryptOp() throws Exception {
         Crypto crypto = new Crypto();
         crypto.encryptWithPassword(
-            new FileInputStream(new File(System.getProperty("jbox.in"))),
-            new FileOutputStream(new File(System.getProperty("jbox.out"))),
-            readPassword());
+            getInputStream(), getOutputStream(), getPassword());
     }
 
     private static void decryptOp() throws Exception {
         Crypto crypto = new Crypto();
         crypto.decryptWithPassword(
-            new FileInputStream(new File(System.getProperty("jbox.in"))),
-            new FileOutputStream(new File(System.getProperty("jbox.out"))),
-            readPassword());
+            getInputStream(), getOutputStream(), getPassword());
     }
 
-    private static char[] readPassword() throws Exception {
+    private static char[] getPassword() throws Exception {
         String p = System.getProperty("jbox.password");
         if (p != null) {
             return p.toCharArray();
@@ -56,5 +52,21 @@ public class App {
                 new File(
                     System.getProperty("jbox.password.file")))
         ).readLine().toCharArray();
+    }
+
+    private static InputStream getInputStream() throws Exception {
+        String filename = System.getProperty("jbox.in");
+        if (filename != null) {
+            return new FileInputStream(new File(filename));
+        }
+        return System.in;
+    }
+
+    private static OutputStream getOutputStream() throws Exception {
+        String filename = System.getProperty("jbox.out");
+        if (filename != null) {
+            return new FileOutputStream(new File(filename));
+        }
+        return System.out;
     }
 }
